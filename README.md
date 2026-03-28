@@ -48,7 +48,7 @@ PharmaCheck eschews traditional, slow OCR logic in favor of passing unadulterate
 ```mermaid
 graph TD
     A[Client UI - React 19] -->|Multipart Upload| B(Next.js App Router API)
-    B -->|@google/genai SDK| C{Gemini 2.5 Flash Agent}
+    B -->|Google GenAI SDK| C{Gemini 2.5 Flash Agent}
     B -->|REST API| D[(openFDA Safety DB)]
     
     C -->|Extracts/Analyzes| E(Active Medications)

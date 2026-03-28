@@ -43,8 +43,9 @@ export default function ScheduleGrid({ schedule }: ScheduleGridProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <section className="space-y-4" aria-labelledby="schedule-heading">
       <h3
+        id="schedule-heading"
         className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2"
         style={{ color: "var(--text-secondary)" }}
       >
@@ -58,10 +59,12 @@ export default function ScheduleGrid({ schedule }: ScheduleGridProps) {
         {schedule.slots.map((slot, i) => {
           const config = SLOT_CONFIG[slot.time_of_day] || SLOT_CONFIG.morning;
           return (
-            <div
+            <article
               key={i}
               className={`schedule-slot ${config.className} animate-slide-up`}
               style={{ animationDelay: `${i * 0.15}s` }}
+              aria-label={`${config.label} Schedule`}
+              tabIndex={0}
             >
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xl" aria-hidden="true">
@@ -78,9 +81,9 @@ export default function ScheduleGrid({ schedule }: ScheduleGridProps) {
               </div>
 
               {slot.medications.length > 0 ? (
-                <div className="space-y-2">
+                <ul className="space-y-2" role="list">
                   {slot.medications.map((med, j) => (
-                    <div
+                    <li
                       key={j}
                       className="p-3 rounded-lg"
                       style={{ background: "var(--bg-tertiary)" }}
@@ -102,18 +105,18 @@ export default function ScheduleGrid({ schedule }: ScheduleGridProps) {
                       <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
                         {med.instructions}
                       </p>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               ) : (
                 <p className="text-sm italic" style={{ color: "var(--text-muted)" }}>
                   No medications scheduled
                 </p>
               )}
-            </div>
+            </article>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }

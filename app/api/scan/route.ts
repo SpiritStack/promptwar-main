@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { analyzeMedications } from "@/lib/gemini";
 import { lookupMultipleDrugs } from "@/lib/openfda";
+
+const PatientSchema = z.object({
+  patient_age: z.coerce.number().min(0).max(150).optional(),
+  patient_weight_kg: z.coerce.number().min(0).max(500).optional(),
+  allergies: z.string().max(500).optional(),
+  language: z.string().max(10).default("en"),
+});
 
 export const maxDuration = 60; // Allow up to 60 seconds for Gemini processing
 
@@ -10,14 +18,23 @@ export async function POST(request: NextRequest) {
 
     // Extract images
     const imageFiles = formData.getAll("images") as File[];
-    const patientAge = formData.get("patient_age")
-      ? Number(formData.get("patient_age"))
-      : undefined;
-    const patientWeight = formData.get("patient_weight_kg")
-      ? Number(formData.get("patient_weight_kg"))
-      : undefined;
-    const allergies = formData.get("allergies") as string | null;
-    const language = (formData.get("language") as string) || "en";
+    
+    // Secure Input Validation
+    const rawData = {
+      patient_age: formData.get("patient_age") || undefined,
+      patient_weight_kg: formData.get("patient_weight_kg") || undefined,
+      allergies: formData.get("allergies") || undefined,
+      language: formData.get("language") || "en",
+    };
+
+    const parsed = PatientSchema.safeParse(rawData);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid patient data format or extremely long string detected." },
+        { status: 400 }
+      );
+    }
+    const { patient_age, patient_weight_kg, allergies, language } = parsed.data;
 
     if (!imageFiles || imageFiles.length === 0) {
       return NextResponse.json(
@@ -47,9 +64,9 @@ export async function POST(request: NextRequest) {
     // Analyze with Gemini
     const audit = await analyzeMedications(
       imageDataList,
-      patientAge,
-      patientWeight,
-      allergies || undefined,
+      patient_age,
+      patient_weight_kg,
+      allergies,
       language
     );
 

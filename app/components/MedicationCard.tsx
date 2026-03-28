@@ -9,9 +9,11 @@ interface MedicationCardProps {
 
 export default function MedicationCard({ medication, index }: MedicationCardProps) {
   return (
-    <div
+    <article
       className="glass-card p-5 animate-slide-up"
       style={{ animationDelay: `${index * 0.1}s` }}
+      aria-label={`Medication details for ${medication.brand_name || medication.generic_name}`}
+      tabIndex={0}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
@@ -20,8 +22,8 @@ export default function MedicationCard({ medication, index }: MedicationCardProp
               {medication.brand_name || medication.generic_name}
             </h3>
             {medication.needs_verification && (
-              <span className="badge badge-moderate">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <span className="badge badge-moderate" role="status" aria-label="Needs Verification">
+                <svg aria-hidden="true" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                 </svg>
                 Needs Verification
@@ -78,7 +80,7 @@ export default function MedicationCard({ medication, index }: MedicationCardProp
           Prescribed by {medication.prescribing_doctor}
         </div>
       )}
-    </div>
+    </article>
   );
 }
 

@@ -50,6 +50,63 @@ We designed and built a seamless, unified **Next.js 14 App Router** application 
 
 ---
 
+## Architecture & Agent Flow
+
+The application logic acts as a multi-step verification agent, parsing unstructured images and validating them against federal databases.
+
+### 1. High-Level Architecture
+```mermaid
+graph TD
+    A[Client UI - React 19] -->|Multipart Upload| B(Next.js App Router API)
+    B -->|@google/genai SDK| C{Gemini 2.5 Pro Agent}
+    B -->|REST API| D[(openFDA Safety DB)]
+    
+    C -->|Extracts/Analyzes| E(Active Medications)
+    C -->|Generates| F(Consolidated Schedule)
+    D -->|Validates/Flags| G(Drug Interactions & Warnings)
+    
+    E --> H[Structured JSON Validator]
+    F --> H
+    G --> H
+    
+    H -->|Clean API Response| A
+    A -->|User Action| I[jsPDF Document Export]
+```
+
+### 2. Sequence Workflow
+```mermaid
+sequenceDiagram
+    participant User
+    participant NextJS as Next.js Frontend
+    participant APIRoute as Route Handler (/api/scan)
+    participant Gemini as Gemini 2.5 Pro
+    participant OpenFDA as openFDA
+    
+    User->>NextJS: Uploads Pill Bottle/Prescription Images
+    User->>NextJS: (Optional) Inputs Age, Weight, Allergies
+    NextJS->>APIRoute: POST Request (Images + Form Data)
+    
+    activate APIRoute
+    APIRoute->>Gemini: Transmit Images & System Prompt Framework
+    activate Gemini
+    Note over Gemini: Agent performs Multimodal Inference,<br/>Clinical Analysis, and structures outputs.
+    Gemini-->>APIRoute: Returns preliminary `MedicationAudit` JSON
+    deactivate Gemini
+    
+    par Primary Safety Layer
+        APIRoute->>OpenFDA: Query extracted Generic Drug Names
+        OpenFDA-->>APIRoute: Return Black Box/Interaction Warnings
+    end
+    
+    APIRoute-->>APIRoute: Merge & Override FDA Warnings onto Gemini Audit
+    APIRoute-->>NextJS: Transmit Final Secured Payload
+    deactivate APIRoute
+    
+    NextJS-->>User: Render Dashboard (Severity Alerts, Unified Schedule)
+```
+
+---
+
 ## How to Run Locally
 
 1. **Install Dependencies:**
